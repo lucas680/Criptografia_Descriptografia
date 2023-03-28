@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criptografia</title>
+</head>
+<style>
+    .corpo{
+        background-color: aqua;
+        margin: 0;
+        padding: 0;
+    }
+    .texto{
+        height: 300px;
+        width: 300px;
+    }
+    .linha{
+        display: flex;
+        margin: 20px;
+    }
+    .botao{
+        height: 60px;
+        width: 60px;
+        margin: 200px 0;
+        background-color: white;
+        border: 0;
+        border-radius: 10px;
+        margin: 130% 30px;
+    }
+    .botao:hover{
+        cursor: pointer;
+        background-color: aqua;
+        border: 1px white solid;
+        color: white;
+        scale: 150%;
+    }
+    .coluna{
+        display: block;
+        margin: 50px auto;
+        text-align: center;
+    }
+    @media screen and (max-width: 800px) {
+        .texto{
+            height: 150px;
+            width: 300px;
+        }
+        .linha{
+            display: block;
+            margin: 0 5px;
+        }
+        .botao{
+            height: 60px;
+            width: 60px;
+            background-color: white;
+            border: 0;
+            border-radius: 10px;
+            margin: 10px;
+        }
+        .coluna{
+            display: block;
+            margin: 10px;
+            text-align: center;
+        }
+    }
+</style>
+<body class="corpo">
+    <script>
+
+        function emcript(){
+            var texto = document.getElementById("texto").value;
+            document.getElementById("textoEncript").value = "";
+            
+            if(texto != ""){
+                var alfabeto = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+                var asc =       ["0100 0001","0100 0010","0100 0011","0100 0100","0100 0101","0100 0110","0100 0111","0100 1000","0100 1001","0100 1010","0100 1011","0100 1100","0100 1101",
+                "0100 1110","0100 1111","0101 0000","0101 0001","0101 0010","0101 0011","0101 0100","0101 0101","0101 0110","0101 0111","0101 1000","0101 1001","0101 1010"];
+                
+                //tabelas de conversão
+                var tb_ordem = ["0000","0001","0010","0011","0100","0101","0110","0111",
+                "1000","1001","1010","1011","1100","1101","1110","1111"];
+
+                var tb1 = ["0001","0011","0101","0111","1001","1011","1101","1111",
+                "0000","0010","0100","0110","1000","1010","1100","1110"];
+                var tb2 = ["1111","1110","1101","1100","1011","1010","1001","1000",
+                "0111","0110","0101","0100","0011","0010","0001","0000"];
+                var tb3 = ["1000","1001","1010","1011","1100","1101","1110","1111",
+                "0000","0001","0010","0011","0100","0101","0110","0111"];
+                var tb4 = ["0111","0110","0101","0100","0011","0010","0001","0000",
+                "1111","1110","1101","1100","1011","1010","1001","1000"];
+
+                var IV = "1010 1111 0011 0010";
+
+                //verifica se digitei corretamente
+                texto = texto.split("");
+                var verifica = false;
+                var verifica2 = false;
+                for(i=0;i<texto.length;i++){
+                    for(j=0;j<alfabeto.length;j++){
+                        if(texto[i] == alfabeto[j]){
+                            verifica = true;
+                        }
+                    }
+                    if(verifica == false){
+                        verifica2 = true;
+                    }
+                    verifica = false;
+                }
+
+                //criptografia
+                if(verifica2 == false){
+                    if(texto.length > 1){
+                    
+                    //transforma o texto em bits
+                    var texto_bits = "";
+                    //passa por cada letra do texto
+                    for(i=0;i<texto.length;i++){
+                        //passa por cada valor da tabela asc procurando o byte da letra
+                        for(j=0;j<asc.length;j++){
+                            if(texto[i] == alfabeto[j]){
+                                if(texto_bits == ""){
+                                    texto_bits += asc[j];
+                                }else{
+                                    texto_bits += " "+asc[j];
+                                }
+                            }
+                        }
+                    }
+
+                    //fazendo xor com IV
+
+                    texto_bits = texto_bits.split(" ");
+                    IV = IV.split(" ");
+                    var R = [];
+                    for(i=0;i<4;i++){
+                            R.push(xor(IV[i],texto_bits[i]));
+                    }
+
+                    //transcriptando pela tabela
+                    var R2 = [];
+                    for(i=0;i<4;i++){
+                        for(j=0;j<tb_ordem.length;j++){
+                            if(R[i] == tb_ordem[j]){
+
+                                if(i == 0){
+                                    R2.push(tb1[j]); 
+                                }else if(i==1){
+                                    R2.push(tb2[j]); 
+                                }else if(i==2){
+                                    R2.push(tb3[j]); 
+                                }else if(i==3){
+                                    R2.push(tb4[j]); 
+                                }
+
+                            }
+                        }
+                    }
+
+                    //embaralhar
+                    var cod = [2,3,1,4];
+                    var C = [];
+
+                    for(i=0;i<4;i++){
+                        C.push(R2[cod[i]-1]);
+                    }
+
+                    //alert(R2[0]+" "+R2[1]+" "+R2[2]+" "+R2[3]);
+                    //alert(C[0]+" "+C[1]+" "+C[2]+" "+C[3]);
+
+                    //transcriptando pela tabela
+                    var R2 = [];
+                    for(i=0;i<4;i++){
+                        for(j=0;j<tb_ordem.length;j++){
+                            if(C[i] == tb_ordem[j]){
+
+                                if(i == 0){
+                                    R2.push(tb1[j]); 
+                                }else if(i==1){
+                                    R2.push(tb2[j]); 
+                                }else if(i==2){
+                                    R2.push(tb3[j]); 
+                                }else if(i==3){
+                                    R2.push(tb4[j]); 
+                                }
+
+                            }
+                        }
+                    }
+
+                    C = [];
+
+                    for(i=0;i<4;i++){
+                        C.push(R2[cod[i]-1]);
+                    }
+
+                    alert(C[0]+" "+C[1]+" "+C[2]+" "+C[3]);
+
+
+                }else{
+                    alert("Digite pelo menos 2 letras!");
+                }
+
+                }else{
+                    alert("Todas as letras devem ser maiúsculas e sem assento! Não podem haver espaços em branco e vírgulas");
+                }
+            }else{
+                alert("Digite algo!");
+            }
+        }
+
+
+
+        function xor(v1,v2){
+            v1 = v1.split("");
+            v2 = v2.split("");
+            var res = "";
+
+            for(z=0;z<v1.length;z++){
+                if(v1[z] == v2[z]){
+                    res =  String(res+"0");
+                }else{
+                    res = String(res+"1");
+                }
+            }
+            return res;
+        }
+    </script>
+    <div class="linha">
+        <div class="coluna">
+            <p>Digite o texto a ser criptografado: </p>
+            <textarea id="texto" class="texto"></textarea>
+        </div>
+        <div class="coluna">
+            <button class="botao" onclick="emcript()">➜</button>
+        </div>
+        <div class="coluna">
+            <p>Criptografia: </p>
+            <textarea id="textoEncript" class="texto"></textarea>
+        </div>
+    </div>
+    
+    
+</body>
+</html>
