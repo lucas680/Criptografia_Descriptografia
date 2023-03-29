@@ -127,15 +127,31 @@
                             }
                         }
                     }
-
-                    //fazendo xor com IV
-
                     texto_bits = texto_bits.split(" ");
                     IV = IV.split(" ");
-                    var R = [];
-                    for(i=0;i<4;i++){
-                            R.push(xor(IV[i],texto_bits[i]));
+
+                    //criptografar de 2 em 2 letras
+                    if((texto_bits.length/2)%2==1){
+                        texto_bits.unshift("0000");
+                        texto_bits.unshift("0000");
                     }
+                    var resultado_final = [];
+                    for(a=0;a<texto_bits.length;a+=4){
+
+                    if(a==0){
+                        //fazendo xor com IV
+                        var R = [];
+                        for(i=a;i<a+4;i++){
+                            R.push(xor(IV[i],texto_bits[i]));
+                        }
+                    }else{
+                        //fazendo xor com R anterior
+                        var R = [];
+                        for(i=a;i<a+4;i++){
+                            R.push(xor(resultado_final[i-4],texto_bits[i]));
+                        }
+                    }
+                    
 
                     //transcriptando pela tabela
                     var R2 = [];
@@ -194,7 +210,16 @@
                         C.push(R2[cod[i]-1]);
                     }
 
-                    alert(C[0]+" "+C[1]+" "+C[2]+" "+C[3]);
+                    for(i=0;i<4;i++){
+                        resultado_final.push(C[i]);
+                    }
+
+                }
+
+                //mostrar ao usuário
+                for(i=0;i<resultado_final.length;i++){
+                    document.getElementById("textoEncript").value += resultado_final[i];
+                }
 
 
                 }else{
