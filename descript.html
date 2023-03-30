@@ -68,79 +68,202 @@
 <body class="corpo">
     <script>
 
-        function emcript(){
+        function descript(){
             var texto = document.getElementById("texto").value;
             document.getElementById("textoEncript").value = "";
             
             if(texto != ""){
                 var alfabeto = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ",","];
-                var m1 =       ["K","J","B","N","R","Z","I","P","Y","W","A","X","C","F","D","E","L","G","O","M"," ","H","Q",",","S","V","T","U"];
-                var m2 =       ["C",",","D","E","F","G","R","P","H","O","Q","Y"," ","Z","I","A","B","J","K","W","X","N","S","U","L","T","M","V"];
-                var m3 =       ["A","H","C","D","E"," ","N","O","F","I",",","J","K","B","G","L","U","R","S","M","P","Q","T","Y","Z","V","X","W"];
+                var asc =       ["0100 0001","0100 0010","0100 0011","0100 0100","0100 0101","0100 0110","0100 0111","0100 1000","0100 1001","0100 1010","0100 1011","0100 1100","0100 1101",
+                "0100 1110","0100 1111","0101 0000","0101 0001","0101 0010","0101 0011","0101 0100","0101 0101","0101 0110","0101 0111","0101 1000","0101 1001","0101 1010", "0010 0000","0010 1100"];
                 
+                //tabelas de conversão
+                var tb_ordem = ["0000","0001","0010","0011","0100","0101","0110","0111",
+                "1000","1001","1010","1011","1100","1101","1110","1111"];
+
+                var tb1 = ["0001","0011","0101","0111","1001","1011","1101","1111",
+                "0000","0010","0100","0110","1000","1010","1100","1110"];
+                var tb2 = ["1111","1110","1101","1100","1011","1010","1001","1000",
+                "0111","0110","0101","0100","0011","0010","0001","0000"];
+                var tb3 = ["1000","1001","1010","1011","1100","1101","1110","1111",
+                "0000","0001","0010","0011","0100","0101","0110","0111"];
+                var tb4 = ["0111","0110","0101","0100","0011","0010","0001","0000",
+                "1111","1110","1101","1100","1011","1010","1001","1000"];
+
+                var IV = "1010 1111 0011 0010";
+
                 //verifica se digitei corretamente
                 texto = texto.split("");
                 var verifica = false;
-                var verifica2 = false;
                 for(i=0;i<texto.length;i++){
-                    for(j=0;j<alfabeto.length;j++){
-                        if(texto[i] == alfabeto[j]){
-                            verifica = true;
-                        }
+                    if(texto[i] != "0" && texto[i] != "1"){
+                        verifica = true;
                     }
-                    if(verifica == false){
-                        verifica2 = true;
-                    }
-                    verifica = false;
                 }
 
-                if(verifica2 == false){
-                    // m1,m3,m2
+                //descriptografia
+                if(verifica == false){
+                    if(texto.length >= 16){
+                    
+                        //estrutura do for para cada 16bits de trás pra frente
+                        var dezeseis_bits = []
+                        var dezeseis_bits_anterior = []
+                        var R2 = [];
+                        for(a=texto.length-16;a>=0;a++){
+                            dezeseis_bits.push(texto[a]);
+                            dezeseis_bits_anterior.push(texto[a-16]);
 
-                    var novoTexto = [];
-                    var posicao = 0;
-                    var ordem = 1;
-                    //descobrir a posição no alfabeto
-                    for(i=0;i<texto.length;i++){
+                            if(dezeseis_bits.length == 16){
+                                a = a-32;
+                                
+                                //gerar blocos de 4 bits
+                                var bloco = [];
+                                var bloco_anterior = [];
+                                var aux = "";
+                                var aux2 = "";
+                                for(i=0;i<4;i++){
+                                    for(j=i*4;j<(i+1)*4;j++){
+                                        aux += dezeseis_bits[j];
+                                        aux2 += dezeseis_bits_anterior[j];
+                                    }
+                                    bloco.push(aux);
+                                    aux = "";
 
-                        if(ordem == 1){
-                            for(j=0;j<m1.length;j++){
-                                if(texto[i] == m1[j]){
-                                    posicao = j;
+                                    bloco_anterior.push(aux2);
+                                    aux2 = "";
                                 }
-                            }
-                            novoTexto.push(alfabeto[posicao]);
-                            ordem = 3;
-                        }else if(ordem == 2){
-                            for(j=0;j<m2.length;j++){
-                                if(texto[i] == m2[j]){
-                                    posicao = j;
+
+                                //descodificação
+                                var cod = [3,1,2,4];
+                                var C = [];
+
+                                for(i=0;i<4;i++){
+                                    C.push(bloco[cod[i]-1]);
                                 }
-                            }
-                            novoTexto.push(alfabeto[posicao]);
-                            ordem = 1;
-                        }else if(ordem == 3){
-                            for(j=0;j<m3.length;j++){
-                                if(texto[i] == m3[j]){
-                                    posicao = j;
+
+                                //retorno pela tabela
+                                var R = [];
+                                for(i=0;i<4;i++){
+                                    for(j=0;j<tb_ordem.length;j++){
+                                        if(i==0){
+                                            if(tb1[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==1){
+                                            if(tb2[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==2){
+                                            if(tb3[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==3){
+                                            if(tb4[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }
+                                    }
                                 }
+
+                                //descodificação
+                                C = [];
+
+                                for(i=0;i<4;i++){
+                                    C.push(R[cod[i]-1]);
+                                }
+                                //retorno pela tabela
+                                R = [];
+                                for(i=0;i<4;i++){
+                                    for(j=0;j<tb_ordem.length;j++){
+                                        if(i==0){
+                                            if(tb1[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==1){
+                                            if(tb2[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==2){
+                                            if(tb3[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }else if(i==3){
+                                            if(tb4[j] == C[i]){
+                                                R.push(tb_ordem[j]);
+                                            }
+                                        }
+                                    }
+                                }
+                                if(a == -17){
+                                    IV = IV.split(" ");
+                                    for(i=0;i<4;i++){
+                                        R2.push(xor(R[i],IV[i]));
+                                    }
+                                }else{
+                                    for(i=0;i<4;i++){
+                                        R2.push(xor(R[i],bloco_anterior[i]));
+                                    }
+                                }
+                                
+                                
+                                dezeseis_bits = [];
+                                dezeseis_bits_anterior = [];
                             }
-                            novoTexto.push(alfabeto[posicao]);
-                            ordem = 2;
                         }
                         
-                    }
-                    //mostrar ao usuário
-                    for(i=0;i<novoTexto.length;i++){
-                        document.getElementById("textoEncript").value += novoTexto[i];
-                    }
+                        //transformar em letras
+                        var bloco = [];
+                        var letras = [];
+                        for(i=0;i<R2.length;i++){
+                            bloco.push(R2[i]);
+                            if(i%2==1){
+                                for(j=0;j<asc.length;j++){
+                                    if(bloco[0]+" "+bloco[1] == asc[j]){
+                                        letras.push(alfabeto[j]);
+                                    }
+                                }
+                                bloco = [];
+                            }
+                        }
+                        //mostrar para o usuário
+                        for(i=(letras.length)-1;i>0;i-=2){
+                            if(letras[i] == " " && i==1){
+                                letras[i] = "";
+                            }
+                            document.getElementById("textoEncript").value += letras[i-1]+letras[i];
+                        }                           
+
+
+
+
 
                 }else{
-                    alert("Todas as letras devem ser maiúsculas e sem assento! Somente podem haver espaços em branco e vírgulas");
+                    alert("Digite no mínimo 16 bits! (2 letras)");
+                }
+
+                }else{
+                    alert("Só binários são aceitos");
                 }
             }else{
                 alert("Digite algo!");
             }
+        }
+
+
+
+        function xor(v1,v2){
+            v1 = v1.split("");
+            v2 = v2.split("");
+            var res = "";
+
+            for(z=0;z<v1.length;z++){
+                if(v1[z] == v2[z]){
+                    res =  String(res+"0");
+                }else{
+                    res = String(res+"1");
+                }
+            }
+            return res;
         }
     </script>
     <div class="linha">
@@ -149,7 +272,7 @@
             <textarea id="texto" class="texto"></textarea>
         </div>
         <div class="coluna">
-            <button class="botao" onclick="emcript()">➜</button>
+            <button class="botao" onclick="descript()">➜</button>
         </div>
         <div class="coluna">
             <p>Descriptografia: </p>
